@@ -1,0 +1,12 @@
+# This is the base file for Coordination Application
+# world config: ../../../ambf_models/descriptions/world/world.yaml
+world config: /home/nataliechalfant/ambf/ambf_models/descriptions/world/raven_world.yaml
+color config: /home/nataliechalfant/ambf/ambf_models/descriptions/color/colors.yaml
+input devices config: /home/nataliechalfant/ambf/ambf_models/descriptions/input_devices/input_devices.yaml
+multibody configs:
+  - "/home/nataliechalfant/ambf/ambf_models/descriptions/multi-bodies/environments/SurgicalDesk/env.yaml" #0
+  #- "./tissue_patch.yaml" #1
+  #- "../../../ambf_models/descriptions/multi-bodies/robots/blender-raven2.yaml" #2
+  #- "./sensors_actuators_raven2_R.yaml" #3
+  #- "./sensors_actuators_raven2_L.yaml" #4
+
