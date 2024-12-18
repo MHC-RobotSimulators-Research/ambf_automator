@@ -7,6 +7,7 @@ from os import listdir
 from os.path import isfile, join
 import signal
 import time
+from robot_control import gather_data
 
 base_env = '/home/nataliechalfant/ambf_automator/launch.yaml'
 target_body = '/home/nataliechalfant/ambf_automator/ruth_1000/default_soft.yaml'
@@ -25,7 +26,9 @@ STOP = False
 
 def launch_ambf(launch_file, body):
     global STOP
-    ambf_term = subprocess.Popen(['/home/nataliechalfant/ambf/bin/lin-x86_64/ambf_simulator --launch_file ' + launch_file + ' -l 2,3,4,5' + ' -a ' + body], stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+    cmd = '/home/nataliechalfant/ambf/bin/lin-x86_64/ambf_simulator --launch_file ' + launch_file + ' -l 2,3,4,5' + ' -a ' + body
+    print(cmd)
+    ambf_term = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
     # ambf_term = subprocess.Popen(['~/ambf/bin/lin-x86_64/ambf_simulator --launch_file launch.yaml -l 2,3,4,5 -p 200 -t1 --override_max_comm_freq 100 --override_min_comm_freq 100'], stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
 
     while True:
@@ -95,10 +98,12 @@ def run_data_collection(paths):
         p_ambf.start()
 
         # can do stuff here
-        time.sleep(10)
+        time.sleep(1)
+        gather_data()
 
         STOP = True
         p_ambf.join()
+        time.sleep(1)
 
 
 if __name__ == '__main__':
@@ -113,3 +118,4 @@ if __name__ == '__main__':
     paths = get_files(data_adf_location)[0:10]
     print(paths)
     run_data_collection(paths)
+
