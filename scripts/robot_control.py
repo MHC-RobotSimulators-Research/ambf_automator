@@ -23,11 +23,14 @@ import time
 
 class PointCloudSub:
     def __init__(self, image_topic):
-        self.image_sub = rospy.Subscriber(image_topic, PointCloud, self.point_cloud_cb)
-        self.point_cloud_msg = PointCloud()
+        self.image_sub = rospy.Subscriber(image_topic, PointCloud2, self.point_cloud_cb)
+        self.point_cloud_msg = PointCloud2()
 
     def point_cloud_cb(self, point_cloud_msg):
         self.point_cloud_msg = point_cloud_msg
+
+    def get_point_cloud(self):
+        return self.point_cloud_msg
 
 
 def gather_data():
@@ -39,12 +42,12 @@ def gather_data():
     # Get a handle to PSM1
     psm1 = PSM(simulation_manager, 'psm1')
     # Get a handle  to PSM2 (I think we only need one for now)
-    psm2 = PSM(simulation_manager, 'psm2')
+    # psm2 = PSM(simulation_manager, 'psm2')
     # Get a handle to ECM
-    ecm = ECM(simulation_manager, 'camera1')
+    # ecm = ECM(simulation_manager, 'camera1')
 
     # Add you camera stream subs
-    cameraL_sub = PointCloudSub('/ambf/env/cameras/cameraL/DepthData')
+    point_cloud_sub = PointCloudSub('/ambf/env/cameras/camera1/DepthData')
     # cameraR_sub = ImageSub('/ambf/env/cameras/cameraR/ImageData')
 
     print("Resetting the world")
@@ -55,13 +58,20 @@ def gather_data():
     # Your control / ML / RL Code will go somewhere in this script
     ####
 
+    # Capture pre-deformation point cloud
+    initial_pc = point_cloud_sub.get_point_cloud()
+
     # The PSMs can be controlled either in joint space or cartesian space. For the
     # latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
-    T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.), Vector(0., 0., -0.13))
+    T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.0), Vector(0.0, -0.03, -0.15))
     print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
     psm1.move_cp(T_e_b, 1)
     psm1.set_jaw_angle(0.2)
-    time.sleep(5)
+    time.sleep(1)
+
+    # Capture deformed point cloud
+    final_pc = point_cloud_sub.get_point_cloud()
+
 
     # T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.01, -0.01, -0.13))
     # print("Setting the end-effector frame of PSM2 w.r.t Base", T_e_b)
@@ -70,3 +80,5 @@ def gather_data():
     # time.sleep(1.0)
 
     simulation_manager.clean_up()
+
+    return [initial_pc, final_pc]
