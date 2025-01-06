@@ -12,10 +12,21 @@ from os import listdir
 from os.path import isfile, join
 from robot_control import gather_data
 import config
+from pynput.mouse import Button, Controller
 
 
 # Used to signal exit from round of simulation
 STOP = False
+
+
+def click_ambf():
+    # Ensure corrected AMBF window is in focus
+    os.system('xdotool search --name "AMBF Simulator Window 2" | xargs xdotool windowactivate')
+
+    # Move mouse to center of screen and click once
+    mouse = Controller()
+    mouse.position = (1280, 800)
+    mouse.click(Button.left)
 
 
 def launch_ambf(launch_file, body):
@@ -23,6 +34,10 @@ def launch_ambf(launch_file, body):
     cmd = '/home/nataliechalfant/ambf/bin/lin-x86_64/ambf_simulator --launch_file ' + launch_file + ' -l 2,3,4,5' + ' -a ' + body
     print(cmd)
     ambf_term = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+
+    time.sleep(2)
+
+    click_ambf()
 
     while True:
         if STOP:
