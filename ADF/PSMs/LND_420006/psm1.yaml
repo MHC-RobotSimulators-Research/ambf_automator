@@ -794,7 +794,7 @@ JOINT tool pitch link-tool yaw link:
   joint limits:
     high: 1.4835299974
     low: -1.4835299974
-  enable feedback: false
+  enable feedback: true
   passive: false
   controller: *gripper_controller
   controller output type: VELOCITY

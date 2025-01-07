@@ -5,6 +5,7 @@ data_location = '/home/nataliechalfant/ambf_automator/ruth_1000/'
 data_adf_location = data_location + 'data_adf/'
 data_ipc_location = data_location + 'data_ipc/'
 data_fpc_location = data_location + 'data_fpc/'
+data_force_location = data_location + 'data_force/'
 
 test_name = 'ruth_1000_soft'
 

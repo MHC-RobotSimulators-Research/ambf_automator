@@ -7,12 +7,15 @@ import numpy as np
 import open3d as o3d
 import struct
 import ctypes
+import PyKDL
 import sensor_msgs.point_cloud2 as pc2
 from os import listdir
 from os.path import isfile, join
 from robot_control import gather_data
 import config
 from pynput.mouse import Button, Controller
+import tf_conversions.posemath as pm
+import pandas
 
 
 # Used to signal exit from round of simulation
@@ -83,6 +86,23 @@ def write_point_cloud(point_cloud, path):
     o3d.io.write_point_cloud(path, out_pcd)
 
 
+def write_force(camera_state, link_state, path):
+    link_pos = pm.fromMsg(link_state.pose)
+    cam_pos = pm.fromMsg(camera_state.pose)
+    fl_msg = link_state.wrench.force
+    force_link = PyKDL.Vector(fl_msg.x, fl_msg.y, fl_msg.z)
+    force_cam = cam_pos.M * link_pos.Inverse().M * force_link
+
+    # print(link_pos)
+    # print(cam_pos)
+    print(force_link)
+    print(force_cam)
+
+    # df = pandas.DataFrame([link_pos.p.x(), link_pos.p.y(), link_pos.p.z(), force_cam.x(), force_cam.y(), force_cam.z()])
+    df = pandas.DataFrame([force_cam.x(), force_cam.y(), force_cam.z()])
+    df.to_csv(path)
+
+
 def run_data_collection(paths):
     global STOP
     count = 1
@@ -96,7 +116,7 @@ def run_data_collection(paths):
 
         # can do stuff here
         data = gather_data()
-        print("made it here!")
+        # print("made it here!")
 
         # cleanup time
         STOP = True
@@ -106,9 +126,13 @@ def run_data_collection(paths):
         # Save our data
         ipc_name = config.data_ipc_location + config.test_name + '_ipc_' + "{:05d}".format(count) + '.ply'
         fpc_name = config.data_fpc_location + config.test_name + '_fpc_' + "{:05d}".format(count) + '.ply'
+        force_name = config.data_force_location + config.test_name + '_force_' + "{:05d}".format(count) + '.csv'
 
         write_point_cloud(data[0], ipc_name)
         write_point_cloud(data[1], fpc_name)
+        write_force(data[2], data[3], force_name)
+
+        # and onto the next one
         count += 1
 
 

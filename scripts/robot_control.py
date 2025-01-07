@@ -1,5 +1,9 @@
 # Nothing works unless I dont this, IDK why... :(
 import sys
+
+from ambf_msgs.msg import CameraState
+from ambf_msgs.msg import RigidBodyState
+
 sys.path.insert(0, "/home/nataliechalfant/surgical_robotics_challenge/scripts")
 
 # Modified from surgical_robotics_challenge example interface_via_method_api.py
@@ -21,16 +25,16 @@ import numpy as np
 from surgical_robotics_challenge.simulation_manager import SimulationManager
 import time
 
-class PointCloudSub:
-    def __init__(self, image_topic):
-        self.image_sub = rospy.Subscriber(image_topic, PointCloud2, self.point_cloud_cb)
-        self.point_cloud_msg = PointCloud2()
+class SubManager:
+    def __init__(self, topic, msg_type):
+        self.topic_sub = rospy.Subscriber(topic, msg_type, self.msg_cb)
+        self.msg = msg_type()
 
-    def point_cloud_cb(self, point_cloud_msg):
-        self.point_cloud_msg = point_cloud_msg
+    def msg_cb(self, msg):
+        self.msg = msg
 
-    def get_point_cloud(self):
-        return self.point_cloud_msg
+    def get_msg(self):
+        return self.msg
 
 
 def gather_data():
@@ -46,20 +50,22 @@ def gather_data():
     # Get a handle to ECM
     # ecm = ECM(simulation_manager, 'camera1')
 
-    # Add you camera stream subs
-    point_cloud_sub = PointCloudSub('/ambf/env/cameras/camera1/DepthData')
-    # cameraR_sub = ImageSub('/ambf/env/cameras/cameraR/ImageData')
+    # Add ROS subs
+    point_cloud_sub = SubManager('/ambf/env/cameras/camera1/DepthData', PointCloud2)
+    camera_state_sub = SubManager('/ambf/env/cameras/camera1/State', CameraState)
+    pitch_link_state_sub = SubManager('ambf/env/psm1/toolpitchlink/State', RigidBodyState)
 
+    # Reset and wait for AMBF to stabilize
     print("Resetting the world")
     world_handle.reset()
-    time.sleep(3)
+    time.sleep(2)
 
     ####
     # Your control / ML / RL Code will go somewhere in this script
     ####
 
     # Capture pre-deformation point cloud
-    initial_pc = point_cloud_sub.get_point_cloud()
+    initial_pc = point_cloud_sub.get_msg()
 
     # The PSMs can be controlled either in joint space or cartesian space. For the
     # latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
@@ -67,10 +73,12 @@ def gather_data():
     print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
     psm1.move_cp(T_e_b, 1)
     psm1.set_jaw_angle(0.2)
-    time.sleep(1)
+    time.sleep(2)
 
-    # Capture deformed point cloud
-    final_pc = point_cloud_sub.get_point_cloud()
+    # Capture deformed point cloud and force info
+    final_pc = point_cloud_sub.get_msg()
+    cam_state = camera_state_sub.get_msg()
+    link_state = pitch_link_state_sub.get_msg()
 
 
     # T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/4.), Vector(0.01, -0.01, -0.13))
@@ -81,4 +89,4 @@ def gather_data():
 
     simulation_manager.clean_up()
 
-    return [initial_pc, final_pc]
+    return [initial_pc, final_pc, cam_state, link_state]
