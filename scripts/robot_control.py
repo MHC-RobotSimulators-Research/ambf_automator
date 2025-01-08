@@ -1,5 +1,6 @@
 # Nothing works unless I dont this, IDK why... :(
 import sys
+from random import randint
 
 from ambf_msgs.msg import CameraState
 from ambf_msgs.msg import RigidBodyState
@@ -69,9 +70,17 @@ def gather_data():
 
     # The PSMs can be controlled either in joint space or cartesian space. For the
     # latter, the `servo_cp` command sets the end-effector pose w.r.t its Base frame.
-    T_e_b = Frame(Rotation.RPY(np.pi, 0, np.pi/2.0), Vector(0.0, -0.03, -0.15))
-    print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
-    psm1.move_cp(T_e_b, 1)
+
+    # T_e_b for ruth corner
+    T_e_b_1 = Frame(Rotation.RPY(np.pi, 0, np.pi/2.0), Vector(0.0, -0.03, -0.17))
+    T_e_b_2 = Frame(Rotation.RPY(np.pi, 0, np.pi/2.0), Vector(0.05, -0.085, -0.195))
+    T_e_b_3 = Frame(Rotation.RPY(np.pi, 0, np.pi/2.0), Vector(0.06, -0.007, -0.2))
+    T_e_b_4 = Frame(Rotation.RPY(np.pi, 0, np.pi/2.0), Vector(-0.01, -0.06, -0.135))
+    T_e_b = [T_e_b_1, T_e_b_2, T_e_b_3, T_e_b_4]
+
+    # print("Setting the end-effector frame of PSM1 w.r.t Base", T_e_b)
+    psm1.move_cp(T_e_b[randint(0,4)], 1)
+    # psm1.move_cp(T_e_b_4, 1)
     psm1.set_jaw_angle(0.2)
     time.sleep(2)
 
@@ -90,3 +99,6 @@ def gather_data():
     simulation_manager.clean_up()
 
     return [initial_pc, final_pc, cam_state, link_state]
+
+if __name__ == "__main__":
+    gather_data()
