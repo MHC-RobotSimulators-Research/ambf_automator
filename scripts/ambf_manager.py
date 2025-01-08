@@ -98,8 +98,8 @@ def write_force(camera_state, link_state, path):
     print(force_link)
     print(force_cam)
 
-    # df = pandas.DataFrame([link_pos.p.x(), link_pos.p.y(), link_pos.p.z(), force_cam.x(), force_cam.y(), force_cam.z()])
-    df = pandas.DataFrame([force_cam.x(), force_cam.y(), force_cam.z()])
+    df = pandas.DataFrame([link_pos.p.x(), link_pos.p.y(), link_pos.p.z(), force_cam.x(), force_cam.y(), force_cam.z()])
+    # df = pandas.DataFrame([force_cam.x(), force_cam.y(), force_cam.z()])
     df.to_csv(path)
 
 
