@@ -92,7 +92,8 @@ if __name__ == '__main__':
 
     # Build test ADFs
     body = load_adf(config.target_body)
-    params = generate_kLST_params()
+    params = generate_soft_params()
+    # params = generate_kLST_params()
     # params = generate_kDF_params()
     # params = generate_kMT_params()
     generate_adfs(body, params, config.data_adf_location)
