@@ -103,19 +103,28 @@ def write_force(camera_state, link_state, path):
     df.to_csv(path)
 
 
-def run_data_collection(paths):
+def run_data_collection(paths, start = 0, end = None):
     global STOP
-    count = 1
+    count = start
 
-    for path in paths:
+    if end is None:
+        end = len(paths)
+
+    while count < end:
         STOP = False
-        print(path)
-        p_ambf = threading.Thread(target=launch_ambf, args=(config.base_env, path))
+        print(paths[count])
+        p_ambf = threading.Thread(target=launch_ambf, args=(config.base_env, paths[count]))
         p_ambf.start()
         time.sleep(1)
 
         # can do stuff here
-        data = gather_data()
+        try:
+            data = gather_data()
+        except RuntimeError or TypeError:
+            STOP = True
+            p_ambf.join()
+            time.sleep(1)
+            continue
         # print("made it here!")
 
         # cleanup time
@@ -124,9 +133,9 @@ def run_data_collection(paths):
         time.sleep(1)
 
         # Save our data
-        ipc_name = config.data_ipc_location + config.test_name + '_ipc_' + "{:05d}".format(count) + '.ply'
-        fpc_name = config.data_fpc_location + config.test_name + '_fpc_' + "{:05d}".format(count) + '.ply'
-        force_name = config.data_force_location + config.test_name + '_force_' + "{:05d}".format(count) + '.csv'
+        ipc_name = config.data_ipc_location + config.test_name + '_ipc_' + "{:05d}".format(count + 1) + '.ply'
+        fpc_name = config.data_fpc_location + config.test_name + '_fpc_' + "{:05d}".format(count + 1) + '.ply'
+        force_name = config.data_force_location + config.test_name + '_force_' + "{:05d}".format(count + 1) + '.csv'
 
         write_point_cloud(data[0], ipc_name)
         write_point_cloud(data[1], fpc_name)
@@ -136,11 +145,65 @@ def run_data_collection(paths):
         count += 1
 
 
+def find_missing(paths):
+    ipc = get_files(config.data_ipc_location)
+    fpc = get_files(config.data_fpc_location)
+    force = get_files(config.data_force_location)
+
+    p_ipc = 0
+    p_fpc = 0
+    p_force = 0
+
+    ipc_len = len(ipc[0])
+    fpc_len = len(fpc[0])
+    force_len = len(force[0])
+
+    missing = []
+
+    for i in range(len(paths)):
+        missing_i = False
+
+        # Check ipc
+        if int(ipc[p_ipc][ipc_len - 9 : ipc_len - 4]) == i + 1:
+            p_ipc += 1
+        else:
+            missing_i = True
+
+        # Check fpc
+        if int(fpc[p_fpc][fpc_len - 9: fpc_len - 4]) == i + 1:
+            p_fpc += 1
+        else:
+            missing_i = True
+
+        # Check force
+        if int(force[p_force][force_len - 9: force_len - 4]) == i + 1:
+            p_force += 1
+        else:
+            missing_i = True
+
+        if missing_i:
+            missing.append(i)
+
+
+    return missing
+
+
+def fix_missing(paths, missing):
+    for idx in missing:
+        run_data_collection(paths, idx, idx + 1)
+
 if __name__ == '__main__':
+    # [374, 375, 383, 384, 386, 747, 1038, 1096]
 
     # Load ADFs and run AMBF
     # paths = get_files(config.data_adf_location)[0:10]
     paths = get_files(config.data_adf_location)
-    print(paths)
+    # print(paths)
     run_data_collection(paths)
-
+    # missing = find_missing(paths)
+    # print(missing)
+    #
+    # fix_missing(paths, missing)
+    #
+    # missing = find_missing(paths)
+    # print(missing)
