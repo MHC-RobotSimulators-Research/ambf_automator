@@ -39,6 +39,7 @@ GHOST right finger:
   collision groups: []
   collision shape: BOX
   collision geometry: *box_geometry
+  visible: false
   color components:
     ambient:
       level: 1.0
@@ -74,6 +75,7 @@ GHOST left finger:
   collision groups: []
   collision shape: BOX
   collision geometry: *box_geometry
+  visible: false
   color components:
     ambient:
       level: 1.0

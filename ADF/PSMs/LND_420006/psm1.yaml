@@ -26,6 +26,8 @@ high resolution path: ./high_res/
 low resolution path: ./low_res/
 ignore inter-collision: false
 
+visible: &visible false
+
 controller: &gripper_controller
     P: 30.0
     I: 0.0
@@ -84,7 +86,7 @@ BODY base link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 0
   collision shape: CONE
@@ -149,7 +151,7 @@ BODY main insertion link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 0
   compound collision shape:
@@ -231,7 +233,7 @@ BODY pitch end link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 1
   compound collision shape:
@@ -328,7 +330,7 @@ BODY tool gripper left link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 10
   collision shape: BOX
@@ -393,7 +395,7 @@ BODY tool gripper right link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 11
   collision shape: BOX
@@ -458,7 +460,7 @@ BODY tool pitch link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 3
   collision shape: CAPSULE
@@ -523,7 +525,7 @@ BODY tool roll link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 2
   collision shape: CYLINDER
@@ -588,7 +590,7 @@ BODY tool yaw link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 4
   collision shape: CYLINDER
@@ -653,7 +655,7 @@ BODY yaw link:
   damping:
     angular: 0.1000000015
     linear: 0.0399999991
-  visible: true
+  visible: *visible
   collision groups:
   - 0
   collision shape: CONE
