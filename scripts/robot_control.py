@@ -1,44 +1,68 @@
-# Nothing works unless I dont this, IDK why... :(
+"""Robot Control for Dataset Generation
+
+This script contains the classes and functions to move the PSM to a designated location and subscribe to the camera's
+depth data and state as well as the toolpitchlink's state for capturing force data. Modified from
+surgical_robotics_challenge example interface_via_method_api.py This script does require the surgical_robotics_challenge
+(https://github.com/surgical-robotics-ai/surgical_robotics_challenge) and the path needs to be added below.
+
+@Author: Natalie Chalfant
+@Contact: chalf22n@mtholyoke.edu
+@Date: January 10, 2025
+"""
+# Add the surgical_robotics_challenge to the systems python path
 import sys
+sys.path.insert(0, "/home/nataliechalfant/surgical_robotics_challenge/scripts")
+
+import numpy as np
+import rospy
+import time
+
+from PyKDL import Frame, Rotation, Vector
 from random import randint
+from sensor_msgs.msg import PointCloud2
 
 from ambf_msgs.msg import CameraState
 from ambf_msgs.msg import RigidBodyState
-
-sys.path.insert(0, "/home/nataliechalfant/surgical_robotics_challenge/scripts")
-
-# Modified from surgical_robotics_challenge example interface_via_method_api.py
-
-# Import the relevant classes
-
 from surgical_robotics_challenge.psm_arm import PSM
 from surgical_robotics_challenge.ecm_arm import ECM
 from surgical_robotics_challenge.scene import Scene
-import rospy
-from sensor_msgs.msg import PointCloud2
-
 from surgical_robotics_challenge.kinematics.psmKinematics import ToolType
-
-from PyKDL import Frame, Rotation, Vector
-import numpy as np
-
-# Import AMBF Client
 from surgical_robotics_challenge.simulation_manager import SimulationManager
-import time
+
 
 class SubManager:
+    """
+    Contains the methods to subsribe to and retrieve data from a rostopic
+    """
     def __init__(self, topic, msg_type):
+        """
+        Initializes the SubManager class
+        :param topic: ROS topic to subscribe to as a string
+        :param msg_type: Message type to subscribe to
+        """
         self.topic_sub = rospy.Subscriber(topic, msg_type, self.msg_cb)
         self.msg = msg_type()
 
     def msg_cb(self, msg):
+        """
+        Callback method for messages received from the rostopic
+        :param msg: ROS message
+        """
         self.msg = msg
 
     def get_msg(self):
+        """
+        Returns the message received from the rostopic
+        :return: message received from the rostopic
+        """
         return self.msg
 
 
 def gather_data():
+    """
+    Initializes subscribers and connects to AMBF to move PSM and gather camera, depth, and force data.
+    :return: List containing the initial point cloud, final point cloud, camera state and toolpitchlink state
+    """
     # Create an instance of the client
     simulation_manager = SimulationManager('ambf_automator')
     time.sleep(1)
@@ -56,9 +80,6 @@ def gather_data():
     camera_state_sub = SubManager('/ambf/env/cameras/camera1/State', CameraState)
     pitch_link_state_sub = SubManager('ambf/env/psm1/toolpitchlink/State', RigidBodyState)
 
-    # Reset and wait for AMBF to stabilize
-    # print("Resetting the world")
-    # world_handle.reset()
     time.sleep(2)
 
     ####
@@ -103,9 +124,12 @@ def gather_data():
     # psm2.set_jaw_angle(0.5)
     # time.sleep(1.0)
 
+    # Clean up after collecting data. Note: surgical_robotics_challenge needs to be modified to add this method
     simulation_manager.clean_up()
 
     return [initial_pc, final_pc, cam_state, link_state]
 
+
 if __name__ == "__main__":
+    # Run gather data for testing purposes
     gather_data()
