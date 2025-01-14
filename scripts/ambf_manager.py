@@ -111,6 +111,7 @@ def write_point_cloud(point_cloud, path):
         # x,y,z can be retrieved from the x[0],x[1],x[2]
         xyz[idx] = x[:3]
         rgb[idx] = [r, g, b]
+        idx += 1
 
     out_pcd = o3d.geometry.PointCloud()
     out_pcd.points = o3d.utility.Vector3dVector(xyz)
